@@ -1,0 +1,40 @@
+{
+  "name": "missy-postgres",
+  "description": "PostgreSQL driver for Missy ORM",
+  "version": "0.0.1",
+  
+  "author": "kolypto <kolypto@gmail.com>",
+  "license": "MIT",
+  "maintainers": [
+    "kolypto <kolypto@gmail.com>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:kolypto/nodejs-missy-postgres.git"
+  },
+  
+  "main": "./lib/index",
+  "keywords": [
+    "orm","odm",
+    "data-mapper",
+    "missy",
+    "pg", "postgres", "postgresql"
+  ],
+  
+  "dependencies": {
+    "lodash": "2.3.x",
+    "q": "0.9.x",
+    "pg": "2.8.x"
+  },
+  "devDependencies": {
+    "nodeunit": "0.8.x",
+    "missy": "0.0.x"
+  },
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  
+  "scripts": {
+    "test": "./node_modules/.bin/nodeunit tests/*-test.js"
+  }
+}
