@@ -89,6 +89,42 @@ exports.testPrepareCriteria = function(test){
 /** Test prepareProjection()
  */
 exports.testPrepareProjection = function(test){
+    var schema = new missy.Schema('memory'),
+        User = schema.define('User', { id: Number, login: String, age: Number, roles: Array })
+        ;
+
+    var p, select;
+
+    // Empty projection
+    p = new missy.util.MissyProjection({});
+    select = u.prepareProjection(undefined, User, p);
+    test.equal(select, '*');
+
+    // Empty projection: qualified
+    p = new missy.util.MissyProjection({});
+    select = u.prepareProjection('t', User, p);
+    test.equal(select, '"t".*');
+
+    // Inclusion
+    p = new missy.util.MissyProjection({ id:1, login:1 });
+    select = u.prepareProjection(undefined, User, p);
+    test.equal(select, '"id", "login"');
+
+    // Inclusion: qualified
+    p = new missy.util.MissyProjection({ id:1, login:1 });
+    select = u.prepareProjection('t', User, p);
+    test.equal(select, '"t"."id", "t"."login"');
+
+    // Exclusion
+    p = new missy.util.MissyProjection({ age:0, roles:0 });
+    select = u.prepareProjection(undefined, User, p);
+    test.equal(select, '"id", "login"');
+
+    // Exclusion: qualified
+    p = new missy.util.MissyProjection({ age:0, roles:0 });
+    select = u.prepareProjection('t', User, p);
+    test.equal(select, '"t"."id", "t"."login"');
+
     return test.done();
 };
 
