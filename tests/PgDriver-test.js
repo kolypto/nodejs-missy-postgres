@@ -22,7 +22,11 @@ exports.setUp = function(callback){
 };
 
 
-exports.testSequence = function(test){
+
+/** Test driver: specific cases
+ * @param {test|assert} test
+ */
+exports.testPostgresDriver = function(test){
 
     var schema = this.schema;
 
@@ -46,6 +50,9 @@ exports.testSequence = function(test){
 
 
 
+/** Test driver: common behaviors
+ * @param {test|assert} test
+ */
 exports.testCommonDriverTest = function(test){
     var schema = this.schema;
 
@@ -66,6 +73,7 @@ exports.testCommonDriverTest = function(test){
         })
         // Run tests
         .then(function(){
+            return;
             return _.values(defaultDriverTest.tests).reduce(Q.when, Q(1))
         })
         .catch(function(e){ test.ok(false, e.stack); })
@@ -75,6 +83,8 @@ exports.testCommonDriverTest = function(test){
 
 
 
+/** Tear down the schema
+ */
 exports.tearDown = function(callback){
     if (!this.schema)
         return callback();
