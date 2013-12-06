@@ -171,7 +171,7 @@ exports.testPrepareUpdate = function(test){
 
     // Fields
     up = new missy.util.MissyUpdate(User, {
-        $set: { id: 1, login: 'a' },
+        $set: { id: 1, login: 'a', lol: undefined },
         $inc: { age: 3, id: -4 },
         $unset: { old_login: '', roles: '' },
         $setOnInsert: { id: 10 },
@@ -183,6 +183,7 @@ exports.testPrepareUpdate = function(test){
     _([
         '"id"=$1',
         '"login"=$2',
+        '"lol"=DEFAULT',
         '"age"="age"+$3',
         '"id"="id"+$4',
         '"old_login"=DEFAULT',
@@ -198,7 +199,9 @@ exports.testPrepareUpdate = function(test){
     return test.done();
 };
 
-exports.testEntityInsertQuery = function(test){
+/** Test ModelInsertQuery
+ */
+exports.testModelInsertQuery = function(test){
     var schema = new missy.Schema('memory'),
         User = schema.define('User', { id: Number, login: String, age: Number, roles: Array, old_login: String })
         ;
@@ -208,13 +211,49 @@ exports.testEntityInsertQuery = function(test){
 
     // Empty
     q = insertQuery.entityQuery({});
-    test.equal(q.queryString(), 'INSERT INTO "users" ("id","login","age","roles","old_login") VALUES(DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT) RETURNING *;');
+    test.equal(q.queryString(true), 'INSERT INTO "users" ("id","login","age","roles","old_login") VALUES(DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT) RETURNING *;');
     test.deepEqual(q.params, []);
 
     // With values
     q = insertQuery.entityQuery({ id: 1, login: 'ivy', age: 18 });
-    test.equal(q.queryString(), 'INSERT INTO "users" ("id","login","age","roles","old_login") VALUES($1,$2,$3,DEFAULT,DEFAULT) RETURNING *;');
+    test.equal(q.queryString(true), 'INSERT INTO "users" ("id","login","age","roles","old_login") VALUES($1,$2,$3,DEFAULT,DEFAULT) RETURNING *;');
     test.deepEqual(q.params, [1, 'ivy', 18]);
+
+    test.done();
+};
+
+/** Test ModelUpdateQuery
+ */
+exports.testModelUpdateQuery = function(test){
+    var schema = new missy.Schema('memory'),
+        User = schema.define('User', { id: Number, login: String, age: { type: 'number', required: true, def: 0 } })
+        ;
+
+    var updateQuery = new u.ModelUpdateQuery(User),
+        q, params;
+
+    // Empty
+    test.throws(function(){
+        updateQuery.entityQuery({});
+    }, missy.errors.MissyModelError);
+
+    // Partial
+    q = updateQuery.entityQuery({ id: 1 });
+    test.equal(q.queryString(true), 'UPDATE "users" SET "login"=$1, "age"=$2 WHERE "users"."id" = $3 RETURNING *;');
+    test.deepEqual(q.params, [null, null, 1]);
+
+    // Full
+    q = updateQuery.entityQuery({ id: 1, login: 'dizzy' });
+    test.equal(q.queryString(true), 'UPDATE "users" SET "login"=$1, "age"=$2 WHERE "users"."id" = $3 RETURNING *;');
+    test.deepEqual(q.params, ['dizzy', null, 1]);
+
+    // Custom
+    q = updateQuery.customQuery(
+        new missy.util.MissyUpdate(User, { a:1, b:2 }),
+        new missy.util.MissyCriteria(User, { c:3, d:4 })
+    );
+    test.equal(q.queryString(false), 'UPDATE "users" SET "a"=$1, "b"=$2 WHERE "users"."c" = $3 AND "users"."d" = $4;');
+    test.deepEqual(q.params, [1,2,3,4]);
 
     test.done();
 };
