@@ -55,8 +55,9 @@ exports.testPrepareCriteria = function(test){
         '"a4" != ALL( $12 )',
         '"f1" IS NOT NULL',
         '"f2" IS NULL',
+        undefined
     ]).each(function(expr, i){
-            test.equal(expr, where.split(' AND ')[i])
+            test.strictEqual(expr, where.split(' AND ')[i])
         });
 
     test.deepEqual(params, [
@@ -74,9 +75,10 @@ exports.testPrepareCriteria = function(test){
     _([
         '"t"."a" = $2',
         '"t"."b" > $3',
-        '"t"."b" >= $4'
+        '"t"."b" >= $4',
+        undefined
     ]).each(function(expr, i){
-            test.equal(expr, where.split(' AND ')[i])
+            test.strictEqual(expr, where.split(' AND ')[i])
         });
 
     test.deepEqual(params, [
@@ -154,5 +156,44 @@ exports.testPrepareSort = function(test){
 /** Test prepareUpdate()
  */
 exports.testPrepareUpdate = function(test){
+    var schema = new missy.Schema('memory'),
+        User = schema.define('User', { id: Number, login: String, age: Number, roles: Array, old_login: String })
+        ;
+
+    var up, update, params;
+
+    // Empty
+    up = new missy.util.MissyUpdate(User, {});
+    params = [];
+    update = u.prepareUpdate(up, params);
+    test.strictEqual(update, null);
+    test.deepEqual(params, []);
+
+    // Fields
+    up = new missy.util.MissyUpdate(User, {
+        $set: { id: 1, login: 'a' },
+        $inc: { age: 3, id: -4 },
+        $unset: { old_login: '', roles: '' },
+        $setOnInsert: { id: 10 },
+        $rename: { login: 'old_login' }
+    });
+    params = [];
+    update = u.prepareUpdate(up, params);
+
+    _([
+        '"id"=$1',
+        '"login"=$2',
+        '"age"="age"+$3',
+        '"id"="id"+$4',
+        '"old_login"=DEFAULT',
+        '"roles"=DEFAULT',
+        '"id"="id"',
+        '"old_login"="login"', '"login"=DEFAULT',
+        undefined
+    ]).each(function(expr, i){
+            test.strictEqual(expr, update.split(', ')[i])
+        });
+    test.deepEqual(params, [1, 'a',3,-4]);
+
     return test.done();
 };
