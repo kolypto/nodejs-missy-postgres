@@ -20,7 +20,7 @@ exports.testPrepareCriteria = function(test){
     params = [0];
     where = u.prepareCriteria(undefined, c, params);
 
-    test.equal(where, '');
+    test.strictEqual(where, null);
     test.deepEqual(params, [0]);
 
     // Full criteria
@@ -131,6 +131,23 @@ exports.testPrepareProjection = function(test){
 /** Test prepareSort()
  */
 exports.testPrepareSort = function(test){
+    var s, orderby;
+
+    // Empty
+    s = new missy.util.MissySort({});
+    orderby = u.prepareSort(undefined, s);
+    test.strictEqual(orderby, null);
+
+    // Fields
+    s = new missy.util.MissySort({ a:1, b: -1, c: 1 });
+    orderby = u.prepareSort(undefined, s);
+    test.equal(orderby, '"a" ASC, "b" DESC, "c" ASC');
+
+    // Fields, qualified
+    s = new missy.util.MissySort({ a:1, b: -1, c: 1 });
+    orderby = u.prepareSort('t', s);
+    test.equal(orderby, '"t"."a" ASC, "t"."b" DESC, "t"."c" ASC');
+
     return test.done();
 };
 
