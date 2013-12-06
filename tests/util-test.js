@@ -257,3 +257,33 @@ exports.testModelUpdateQuery = function(test){
 
     test.done();
 };
+
+/** Test ModelDeleteQuery
+ */
+exports.testModelDeleteQuery = function(test){
+    var schema = new missy.Schema('memory'),
+        User = schema.define('User', { type: String, id: Number }, { pk: ['type', 'id'] })
+        ;
+
+    var deleteQuery = new u.ModelDeleteQuery(User),
+        q, params;
+
+    // Empty
+    test.throws(function(){
+        deleteQuery.entityQuery({});
+    }, missy.errors.MissyModelError);
+
+    // Full
+    q = deleteQuery.entityQuery({ type: 'user', id: 1, login: 'dizzy' });
+    test.equal(q.queryString(true), 'DELETE FROM "users" WHERE "users"."type" = $1 AND "users"."id" = $2 RETURNING *;');
+    test.deepEqual(q.params, ['user', 1]);
+
+    // Custom
+    q = deleteQuery.customQuery(
+        new missy.util.MissyCriteria(User, { c:1, d:2 })
+    );
+    test.equal(q.queryString(false), 'DELETE FROM "users" WHERE "users"."c" = $1 AND "users"."d" = $2;');
+    test.deepEqual(q.params, [1,2]);
+
+    test.done();
+};
