@@ -197,3 +197,24 @@ exports.testPrepareUpdate = function(test){
 
     return test.done();
 };
+
+exports.testEntityInsertQuery = function(test){
+    var schema = new missy.Schema('memory'),
+        User = schema.define('User', { id: Number, login: String, age: Number, roles: Array, old_login: String })
+        ;
+
+    var insertQuery = new u.ModelInsertQuery(User),
+        q, params;
+
+    // Empty
+    q = insertQuery.entityQuery({});
+    test.equal(q.queryString(), 'INSERT INTO "users" ("id","login","age","roles","old_login") VALUES(DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT) RETURNING *;');
+    test.deepEqual(q.params, []);
+
+    // With values
+    q = insertQuery.entityQuery({ id: 1, login: 'ivy', age: 18 });
+    test.equal(q.queryString(), 'INSERT INTO "users" ("id","login","age","roles","old_login") VALUES($1,$2,$3,DEFAULT,DEFAULT) RETURNING *;');
+    test.deepEqual(q.params, [1, 'ivy', 18]);
+
+    test.done();
+};
