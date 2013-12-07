@@ -71,8 +71,14 @@ exports.testPostgresDriver = function(test){
                     test.deepEqual(entities[0], { id: 1, title: 'first', length: null, date: null, tags: null, data: null });
                     test.deepEqual(entities[1], { id: 2, title: 'second', length: 10, date: null, tags: ['a','b','c'], data: {a:1, b:2, c:3} });
                 });
-        }
+        },
         // Insert duplicate key
+        function(){
+            return Post.insert({ id: 1 })
+                .catch(function(e){
+                    test.ok(e instanceof missy.errors.EntityExists, e.stack);
+                });
+        }
     ].reduce(Q.when, Q(1))
         .catch(function(e){ test.ok(false, e.stack); })
         .finally(test.done)
