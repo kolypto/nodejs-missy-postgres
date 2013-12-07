@@ -384,6 +384,33 @@ exports.testModelSelectQuery = function(test){
     test.done();
 };
 
+/** Test ModelCountQuery
+ */
+exports.testModelCountQuery = function(test){
+    var schema = new missy.Schema('memory'),
+        User = schema.define('User', { id: Number, login: String, age: Number, roles: Array })
+        ;
+
+    var countQuery = new u.ModelCountQuery(User),
+        q;
+
+    // count all
+    q = countQuery.customQuery(
+        new missy.util.MissyCriteria(User, {})
+    );
+    test.equal(q.queryString(), 'SELECT COUNT(*) FROM "users";');
+    test.deepEqual(q.params, []);
+
+    // count criteria
+    q = countQuery.customQuery(
+        new missy.util.MissyCriteria(User, { age: { $gte: 18 } })
+    );
+    test.equal(q.queryString(), 'SELECT COUNT(*) FROM "users" WHERE "users"."age" >= $1;');
+    test.deepEqual(q.params, [18]);
+
+    test.done();
+};
+
 /** Test ModelMergeQuery
  */
 exports.testModelMergeQuery = function(test){
