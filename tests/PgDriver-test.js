@@ -117,7 +117,6 @@ exports.testCommonDriverTest = function(test){
                         delete entity[fieldName];
                 });
             };
-            return;
             // Run
             return _.values(defaultDriverTest.tests).reduce(Q.when, Q(1))
         })

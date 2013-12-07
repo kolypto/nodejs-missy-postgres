@@ -394,6 +394,7 @@ exports.testModelMergeQuery = function(test){
     var mergeQuery = new u.ModelMergeQuery(User),
         q;
 
+    // returning=false
     q = mergeQuery.entityQuery({ id: 1, login: 'test' });
     test.equal(
         q.queryString(),
@@ -403,6 +404,22 @@ exports.testModelMergeQuery = function(test){
         'INSERT INTO "users" ("id", "login") ' +
         'SELECT $5, $6 ' +
         'WHERE NOT EXISTS( SELECT 1 FROM upsert WHERE "upsert"."id" = $7 );'
+    );
+    test.deepEqual(q.params, ['test', null, null, 1, 1, 'test', 1]);
+
+    // returning=true
+    q = mergeQuery.entityQuery({ id: 1, login: 'test' });
+    test.equal(
+        q.queryString(true),
+        'WITH upsert AS ( ' +
+            'UPDATE "users" SET "login"=$1, "age"=$2, "roles"=$3 WHERE "users"."id" = $4 RETURNING * ' +
+        '), insert AS ( ' +
+            'INSERT INTO "users" ("id", "login") ' +
+            'SELECT $5, $6 WHERE NOT EXISTS( SELECT 1 FROM upsert WHERE "upsert"."id" = $7 ) RETURNING *' +
+        ') ' +
+        'SELECT * FROM upsert ' +
+        'UNION ' +
+        'SELECT * FROM insert;'
     );
     test.deepEqual(q.params, ['test', null, null, 1, 1, 'test', 1]);
 
