@@ -110,7 +110,15 @@ exports.testCommonDriverTest = function(test){
         })
         // Run tests
         .then(function(){
+            // NOTE: this driver has a schema and uses `null`s for missing fields. Drop them on load.
+            defaultDriverTest.User.hooks.afterImport = function(entity){
+                _.each(entity, function(val, fieldName){
+                    if (_.isNull(val))
+                        delete entity[fieldName];
+                });
+            };
             return;
+            // Run
             return _.values(defaultDriverTest.tests).reduce(Q.when, Q(1))
         })
         .catch(function(e){ test.ok(false, e.stack); })

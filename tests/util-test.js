@@ -383,3 +383,28 @@ exports.testModelSelectQuery = function(test){
 
     test.done();
 };
+
+/** Test ModelMergeQuery
+ */
+exports.testModelMergeQuery = function(test){
+    var schema = new missy.Schema('memory'),
+        User = schema.define('User', { id: Number, login: String, age: Number, roles: Array })
+        ;
+
+    var mergeQuery = new u.ModelMergeQuery(User),
+        q;
+
+    q = mergeQuery.entityQuery({ id: 1, login: 'test' });
+    test.equal(
+        q.queryString(),
+        'WITH upsert AS ( ' +
+            'UPDATE "users" SET "login"=$1, "age"=$2, "roles"=$3 WHERE "users"."id" = $4 RETURNING * ' +
+        ') ' +
+        'INSERT INTO "users" ("id", "login") ' +
+        'SELECT $5, $6 ' +
+        'WHERE NOT EXISTS( SELECT 1 FROM upsert WHERE "upsert"."id" = $7 );'
+    );
+    test.deepEqual(q.params, ['test', null, null, 1, 1, 'test', 1]);
+
+    test.done();
+};
