@@ -3,7 +3,8 @@
 var Q = require('q'),
     _ = require('lodash'),
     missy = require('missy'),
-    pg = require('pg')
+    pg = require('pg'),
+    u = require('../lib/util')
     ;
 require('../');
 
@@ -42,6 +43,36 @@ exports.testPostgresDriver = function(test){
     var now = new Date();
 
     return [
+        // Create schema
+        function(){
+            return Q.nmcall(schema.getClient(), 'query',
+                'CREATE TABLE ' + u.escapeIdentifier(Post.options.table) + ' (' +
+                    [
+                        '"id" SERIAL',
+                        '"title" varchar',
+                        '"length" int',
+                        '"date" timestamptz',
+                        '"tags" varchar[]',
+                        '"data" text',
+//                        '"data" json',
+                        'PRIMARY KEY("id")'
+                    ].join(',') +
+                ');'
+            );
+        },
+        // Insert test
+        function(){
+            return Post.insert([
+                { title: 'first' },
+                { title: 'second', length: 10, tags: ['a','b','c'], data: {a:1,b:2,c:3} },
+                { title: 'third', date: now }
+            ]).then(function(entities){
+                    test.equal(entities.length, 3);
+                    test.deepEqual(entities[0], { id: 1, title: 'first', length: null, date: null, tags: null, data: null });
+                    test.deepEqual(entities[1], { id: 2, title: 'second', length: 10, date: null, tags: ['a','b','c'], data: {a:1, b:2, c:3} });
+                });
+        }
+        // Insert duplicate key
     ].reduce(Q.when, Q(1))
         .catch(function(e){ test.ok(false, e.stack); })
         .finally(test.done)
