@@ -239,7 +239,7 @@ exports.testModelInsertQuery = function(test){
         ;
 
     var insertQuery = new u.ModelInsertQuery(User),
-        q, params;
+        q;
 
     // Empty
     q = insertQuery.entityQuery({});
@@ -298,7 +298,7 @@ exports.testModelDeleteQuery = function(test){
         ;
 
     var deleteQuery = new u.ModelDeleteQuery(User),
-        q, params;
+        q;
 
     // Empty
     test.throws(function(){
@@ -316,6 +316,70 @@ exports.testModelDeleteQuery = function(test){
     );
     test.equal(q.queryString(false), 'DELETE FROM "users" WHERE "users"."c" = $1 AND "users"."d" = $2;');
     test.deepEqual(q.params, [1,2]);
+
+    test.done();
+};
+
+/** Test ModelSelectQuery
+ */
+exports.testModelSelectQuery = function(test){
+    var schema = new missy.Schema('memory'),
+        User = schema.define('User', { id: Number, login: String, age: Number, roles: Array })
+        ;
+
+    var selectQuery = new u.ModelSelectQuery(User),
+        q;
+
+    // select *
+    q = selectQuery.customQuery(
+        new missy.util.MissyProjection({})
+    );
+    test.equal(q.queryString(), 'SELECT "users".* FROM "users";');
+    test.deepEqual(q.params, []);
+
+    // select fields
+    q = selectQuery.customQuery(
+        new missy.util.MissyProjection(['id', 'login'])
+    );
+    test.equal(q.queryString(), 'SELECT "users"."id", "users"."login" FROM "users";');
+    test.deepEqual(q.params, []);
+
+    // select fields where
+    q = selectQuery.customQuery(
+        new missy.util.MissyProjection(['id']),
+        new missy.util.MissyCriteria(User, { age: { $gt: 18 } })
+    );
+    test.equal(q.queryString(), 'SELECT "users"."id" FROM "users" WHERE "users"."age" > $1;');
+    test.deepEqual(q.params, [18]);
+
+    // select * order by
+    q = selectQuery.customQuery(
+        new missy.util.MissyProjection({}),
+        undefined,
+        new missy.util.MissySort({ age: -1 })
+    );
+    test.equal(q.queryString(), 'SELECT "users".* FROM "users" ORDER BY "users"."age" DESC;');
+    test.deepEqual(q.params, []);
+
+    // select * where order by limit
+    q = selectQuery.customQuery(
+        new missy.util.MissyProjection({}),
+        undefined,
+        new missy.util.MissySort({ age: -1 }),
+        15
+    );
+    test.equal(q.queryString(), 'SELECT "users".* FROM "users" ORDER BY "users"."age" DESC LIMIT $1;');
+    test.deepEqual(q.params, [15]);
+
+    // select * where limit offset
+    q = selectQuery.customQuery(
+        new missy.util.MissyProjection({}),
+        undefined,
+        new missy.util.MissySort({ age: -1 }),
+        15,5
+    );
+    test.equal(q.queryString(), 'SELECT "users".* FROM "users" ORDER BY "users"."age" DESC LIMIT $1 OFFSET $2;');
+    test.deepEqual(q.params, [15,5]);
 
     test.done();
 };
