@@ -199,6 +199,38 @@ exports.testPrepareUpdate = function(test){
     return test.done();
 };
 
+/** Test prepareLimit()
+ */
+exports.testPrepareLimit = function(test){
+    var l, params;
+
+    // Empty
+    params = [];
+    l = u.prepareLimit(0,0, params);
+    test.strictEqual(l, null);
+    test.deepEqual(params, []);
+
+    // Limit
+    params = [];
+    l = u.prepareLimit(1,0, params);
+    test.strictEqual(l, 'LIMIT $1');
+    test.deepEqual(params, [1]);
+
+    // Offset
+    params = [];
+    l = u.prepareLimit(0,1, params);
+    test.strictEqual(l, 'OFFSET $1');
+    test.deepEqual(params, [1]);
+
+    // Limit Offset
+    params = [];
+    l = u.prepareLimit(1,1, params);
+    test.strictEqual(l, 'LIMIT $1 OFFSET $2');
+    test.deepEqual(params, [1,1]);
+
+    test.done();
+};
+
 /** Test ModelInsertQuery
  */
 exports.testModelInsertQuery = function(test){
