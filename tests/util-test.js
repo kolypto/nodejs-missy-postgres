@@ -279,13 +279,23 @@ exports.testModelUpdateQuery = function(test){
     test.equal(q.queryString(true), 'UPDATE "users" SET "login"=$1, "age"=$2 WHERE "users"."id" = $3 RETURNING *;');
     test.deepEqual(q.params, ['dizzy', null, 1]);
 
-    // Custom
+    // Custom: multi=true
     q = updateQuery.customQuery(
         new missy.util.MissyUpdate(User, { a:1, b:2 }),
-        new missy.util.MissyCriteria(User, { c:3, d:4 })
+        new missy.util.MissyCriteria(User, { c:3, d:4 }),
+        true
     );
     test.equal(q.queryString(false), 'UPDATE "users" SET "a"=$1, "b"=$2 WHERE "users"."c" = $3 AND "users"."d" = $4;');
     test.deepEqual(q.params, [1,2,3,4]);
+
+    // Custom: multi=false
+    q = updateQuery.customQuery(
+        new missy.util.MissyUpdate(User, { a:1, b:2 }),
+        new missy.util.MissyCriteria(User, { c:3, d:4 }),
+        false
+    );
+    test.equal(q.queryString(false), 'UPDATE "users" SET "a"=$1, "b"=$2 WHERE ROW("id") IN ( SELECT "id" FROM "users" WHERE "users"."c" = $3 AND "users"."d" = $4 LIMIT $5 );');
+    test.deepEqual(q.params, [1,2,3,4,1]);
 
     test.done();
 };
