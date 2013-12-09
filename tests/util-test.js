@@ -294,7 +294,7 @@ exports.testModelUpdateQuery = function(test){
         new missy.util.MissyCriteria(User, { c:3, d:4 }),
         false
     );
-    test.equal(q.queryString(false), 'UPDATE "users" SET "a"=$1, "b"=$2 WHERE ROW("id") IN ( SELECT "id" FROM "users" WHERE "users"."c" = $3 AND "users"."d" = $4 LIMIT $5 );');
+    test.equal(q.queryString(false), 'UPDATE "users" SET "a"=$1, "b"=$2 WHERE "id" IN ( SELECT "id" FROM "users" WHERE "users"."c" = $3 AND "users"."d" = $4 LIMIT $5 );');
     test.deepEqual(q.params, [1,2,3,4,1]);
 
     test.done();
@@ -320,12 +320,22 @@ exports.testModelDeleteQuery = function(test){
     test.equal(q.queryString(true), 'DELETE FROM "users" WHERE "users"."type" = $1 AND "users"."id" = $2 RETURNING *;');
     test.deepEqual(q.params, ['user', 1]);
 
-    // Custom
+    // Custom, multi=true
     q = deleteQuery.customQuery(
-        new missy.util.MissyCriteria(User, { c:1, d:2 })
+        new missy.util.MissyCriteria(User, { c:1, d:2 }),
+        true
     );
     test.equal(q.queryString(false), 'DELETE FROM "users" WHERE "users"."c" = $1 AND "users"."d" = $2;');
     test.deepEqual(q.params, [1,2]);
+
+    // Custom, multi=false
+    q = deleteQuery.customQuery(
+        new missy.util.MissyCriteria(User, { c:1, d:2 }),
+        false
+    );
+    test.equal(q.queryString(false), 'DELETE FROM "users" WHERE ROW("type", "id") IN ( SELECT "type", "id" FROM "users" WHERE "users"."c" = $1 AND "users"."d" = $2 LIMIT $3 );');
+    test.deepEqual(q.params, [1,2,1]);
+
 
     test.done();
 };
