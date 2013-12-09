@@ -470,5 +470,22 @@ exports.testModelMergeQuery = function(test){
     );
     test.deepEqual(q.params, ['test', null, null, 1, 1, 'test', 1]);
 
+    // custom query
+    q = mergeQuery.customQuery(
+        new missy.util.MissyUpdate(User, { age:18 }),
+        new missy.util.MissyCriteria(User, { id:1, login:'test' }),
+        true
+    );
+    test.equal(
+        q.queryString(),
+        'WITH upsert AS ( ' +
+            'UPDATE "users" SET "age"=$1 WHERE "users"."id" = $2 AND "users"."login" = $3 RETURNING * ' +
+        ') ' +
+        'INSERT INTO "users" ("id", "login", "age") ' +
+        'SELECT $4, $5, $6 ' +
+        'WHERE NOT EXISTS( SELECT 1 FROM upsert WHERE "upsert"."id" = $7 AND "upsert"."login" = $8 );'
+    );
+    test.deepEqual(q.params, [18, 1, 'test',  1, 'test', 18,  1, 'test']);
+
     test.done();
 };
