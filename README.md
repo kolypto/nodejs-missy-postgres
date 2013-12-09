@@ -33,7 +33,7 @@ var missy = require('missy').loadDriver('postgres'),
 // Driver
 var driver = new MongodbDriver(function(){ // Custom connecter function
     // A promise for a client
-    var client = new pg.Client(url);
+    var client = new pg.Client('postgres://user:pass@host/database');
     return function(){
         return Q.nmcall(client, 'connect')
             .thenResolve(client);
@@ -52,12 +52,9 @@ var schema = new missy.Schema(driver);
 Type Handlers
 -------------
 
-The driver defines the following custom types:
+The driver redefines the following standard types:
 
-* `''`:
-
-```js
-```
+* `'object'`: is always JSON-encoded
 
 
 
