@@ -26,12 +26,13 @@ var schema = new missy.Schema('postgres://localhost/test');
 Full form with manual driver initialization:
 
 ```js
-var missy = require('missy').loadDriver('postgres'),
+var missy = require('missy'),
+    PostgresDriver = require('missy-mongodb').PostgresDriver,
     pg = require('pg')
     ;
 
 // Driver
-var driver = new MongodbDriver(function(){ // Custom connecter function
+var driver = new PostgresDriver(function(){ // Custom connecter function
     // A promise for a client
     var client = new pg.Client('postgres://user:pass@host/database');
     return function(){
