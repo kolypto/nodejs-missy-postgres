@@ -1,7 +1,7 @@
 [![Version](https://badge.fury.io/js/missy-postgres.png)](https://npmjs.org/package/missy-postgres)
 [![Dependency Status](https://gemnasium.com/kolypto/nodejs-missy-postgres.png)](https://gemnasium.com/kolypto/nodejs-missy-postgres)
 
-Missy MongoDB driver
+Missy PostgreSQL driver
 ====================
 
 PostgreSQL database driver for [Missy](https://github.com/kolypto/nodejs-missy).
@@ -30,7 +30,7 @@ Full form with manual driver initialization:
 
 ```js
 var missy = require('missy'),
-    PostgresDriver = require('missy-mongodb').PostgresDriver,
+    PostgresDriver = require('missy-postgres').PostgresDriver,
     pg = require('pg')
     ;
 
